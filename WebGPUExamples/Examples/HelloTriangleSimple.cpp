@@ -1,32 +1,26 @@
 #include <chrono>
-#include <fstream>
 #include <SomeApp/App.h>
 
 #include "SomeApp/ColorAttachmentBuilder.h"
+#include "SomeApp/create.h"
 
 int main() {
     some::App app(some::AppSettings{.title = "Hello Triangle"});
 
-    std::stringstream stream;
-    stream << std::ifstream("resources/HelloTriangleSimple.wgsl").rdbuf();
-    std::string source = stream.str();
+    std::string shaderPath = std::format("{}/HelloTriangleSimple.wgsl",
+                                         RESOURCES);
+    wgpu::ShaderModule shader =
+            some::createShaderModule(shaderPath, app.device);
 
-    wgpu::ShaderSourceWGSL wgsl;
-    wgsl.code = source.c_str();
-
-    const wgpu::ShaderModuleDescriptor shaderDesc{.nextInChain = &wgsl};
-    const wgpu::ShaderModule shader = app.device.
-            CreateShaderModule(&shaderDesc);
     wgpu::ColorTargetState cts{.format = app.capabilities.formats[0]};
-    const wgpu::VertexState vs{.module = shader};
+    wgpu::VertexState vs{.module = shader};
     wgpu::FragmentState fs{.module = shader, .targetCount = 1, .targets = &cts};
-    const wgpu::RenderPipelineDescriptor renderDesc{
+    wgpu::RenderPipelineDescriptor renderDesc{
         .vertex = vs,
         .fragment = &fs
     };
     wgpu::RenderPipeline pipeline = app.device.
             CreateRenderPipeline(&renderDesc);
-
 
     while (!app.shouldClose()) {
         auto att = some::ColorAttachmentBuilder()

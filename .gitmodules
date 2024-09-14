@@ -1,0 +1,3 @@
+[submodule "SomeApp"]
+	path = SomeApp
+	url = https://github.com/somecho/SomeApp
